@@ -1,6 +1,6 @@
 {
   "name": "@shahimat/lott",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "LOTT project for seeding/configurating DB data using TypeORM",
   "homepage": "https://github.com/Shahimat/lott",
   "repository": {
