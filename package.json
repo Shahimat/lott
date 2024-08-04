@@ -2,12 +2,22 @@
   "name": "@shahimat/lott",
   "version": "0.0.1",
   "description": "LOTT project for seeding/configurating DB data using TypeORM",
-  "main": "index.js",
-  "scripts": {
-    "format": "prettier --write ."
+  "homepage": "https://github.com/Shahimat/lott",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shahimat/lott.git"
   },
   "author": "Gevorg Nakhapetyan (ngs22071993@gmail.com)",
   "license": "MIT",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "format": "prettier --write ."
+  },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/jest": "^29.5.12",
