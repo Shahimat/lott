@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "lib": ["ES2022", "ESNext"],
-    "rootDir": "./src",
+    "rootDir": "./",
     "baseUrl": "./src",
     "outDir": "./dist/esm",
     "declaration": true,
@@ -34,6 +34,6 @@
     },
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
 }

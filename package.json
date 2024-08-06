@@ -20,7 +20,9 @@
     "prebuild": "rimraf dist",
     "build": "rollup --config",
     "format": "prettier --write .",
-    "test": "echo \"test\""
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
@@ -36,6 +38,7 @@
     "rimraf": "^6.0.1",
     "rollup": "^4.20.0",
     "rollup-plugin-typescript2": "^0.36.0",
+    "ts-jest": "^29.2.4",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {
