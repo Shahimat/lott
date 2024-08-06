@@ -16,9 +16,11 @@
     "dist"
   ],
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || echo 'Not in a git repo'",
     "prebuild": "rimraf dist",
     "build": "rollup --config",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "echo \"test\""
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
@@ -35,6 +37,9 @@
     "rollup": "^4.20.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^5.5.4"
+  },
+  "peerDependencies": {
+    "typeorm": "^0.3.20"
   },
   "engines": {
     "npm": ">=10.0.0 <11.0.0",

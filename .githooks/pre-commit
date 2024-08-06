@@ -1,0 +1,21 @@
+#!/bin/bash
+readonly node_major_version="20"
+
+# if npm command not found then we are trying to restore
+if ! [[ "$PATH" =~ \.nvm ]]; then
+  if [ ! -d ~/.nvm ]; then
+    echo "Directory ~/.nvm not exists." && exit 1;
+  fi
+
+  versions="`find ~/.nvm/versions/node/ | grep v$node_major_version[^\/]*$`"
+  fist_node_version="`echo "$versions" | sed -z -n "s/^.*\(v.*\)\n.*$/\1/p"`"
+
+  if [ -z ${fist_node_version} ]; then 
+    echo "Node version not founded! Selected major version - $node_major_version"; 
+    exit 1;
+  else
+    PATH=$PATH:~/.nvm/versions/node/$fist_node_version/bin
+  fi
+fi
+
+npm run test
