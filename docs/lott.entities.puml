@@ -1,0 +1,51 @@
+@startuml lott entities
+
+' hide the spot
+hide circle
+
+' to get table name use one of the next way:
+' Entity instance names User
+' - getManager().getRepository(User).metadata.tableName
+' - user.getRepository().metadata.tableName
+entity tables as "TablesEntity" {
+  *id : int
+  createdAt : timestamp
+  updatedAt : timestamp
+  ..
+  name: varchar
+  updatedBy : varchar
+}
+
+entity relations as "RelationsEntity" {
+  *id : int
+  ..
+  +sourceId : int
+  +targetId : int
+  sourceColumnName: varchar
+  targetColumnName: varchar
+}
+
+entity rows as "RowsEntity" {
+  *id : int
+  ..
+  +tableId : int
+  appointedId : int
+  alias: varchar
+}
+
+entity row_relations as "RowRelationsEntity" {
+  *id : int
+  ..
+  +sourceRowId : int
+  +targetRowId : int
+  +relationId : int
+}
+
+tables |o..|{ relations
+tables |o..|{ relations
+tables |o..|{ rows
+relations |o..|{ row_relations
+rows |o..|{ row_relations
+rows |o..|{ row_relations
+
+@enduml
