@@ -2,7 +2,7 @@
 
 delta-file uses to incremental deploy changes into DB. Delta-file also declarative file, witch contains description, how to apply changes into DB.
 
-example `20240807-ff62f1df-af31-46f5-b92e-30f1467402cc.json`:
+v1 example `20240807-ff62f1df-af31-46f5-b92e-30f1467402cc.json`:
 
 ```json
 {
@@ -54,4 +54,92 @@ example `20240807-ff62f1df-af31-46f5-b92e-30f1467402cc.json`:
     }
   }
 }
+```
+
+v2 more imperative example `20240809_ba178d0a-d573-47a5-8e54-78742fc7e6dd.json`:
+
+```json
+[
+  [
+    "#metadata",
+    {
+      "name": "20240809_ba178d0a-d573-47a5-8e54-78742fc7e6dd",
+      "tables": [
+        {
+          "name": "some_table",
+          "relations": {
+            "creatorId": {
+              "table": "user",
+              "field": "id"
+            },
+            "categoryId": {
+              "table": "category",
+              "field": "id"
+            }
+          }
+        },
+        "some_table2",
+        "some_table3"
+      ]
+    }
+  ],
+  [
+    "#use_defaults",
+    "some_table",
+    ["aliasField", ["#each_get_alias"]],
+    ["code", 100],
+    ["creatorId", ["#find", "user", ["name", "system"], "id"]]
+  ],
+  [
+    "#apply",
+    "some_table",
+    [
+      "af591fc6-8a65-47e3-9484-c699bd5e5994",
+      { "field1": true, "field2": "example string" }
+    ],
+    ["alias_name", { "field1": false, "field2": "why not?" }]
+  ],
+  [
+    "#delete",
+    "some_table2",
+    "024b05cd-89fb-43e5-8c73-297dec1d1af4",
+    "5979b82e-d74f-46c1-9848-5e0ab1412c63",
+    "a3baab52-91ac-4435-a6ca-eb6848c887fd",
+    "baaaa4b9-c634-493d-af09-a1236ea419b8"
+  ],
+  [
+    "#apply",
+    "some_table",
+    "226d4790-f471-4e99-bb3d-1fc3debfaebc",
+    [
+      "#obj_create",
+      ["field1_boolean", true],
+      ["field2_array", ["#array", [1, 2, 3]]],
+      [
+        "field3_number",
+        [
+          "#get_field_data",
+          "some_table3",
+          "51114ab3-0c73-4cba-af99-cdd29280854d",
+          "id"
+        ]
+      ],
+      ["some_string", ["#string_concat", "percent = ", "20", "%"]]
+    ]
+  ],
+  [
+    "#test_row_exists",
+    "some_table",
+    "af591fc6-8a65-47e3-9484-c699bd5e5994",
+    "alias_name"
+  ],
+  [
+    "#test_row_not_exists",
+    "some_table",
+    "024b05cd-89fb-43e5-8c73-297dec1d1af4",
+    "5979b82e-d74f-46c1-9848-5e0ab1412c63",
+    "a3baab52-91ac-4435-a6ca-eb6848c887fd",
+    "baaaa4b9-c634-493d-af09-a1236ea419b8"
+  ]
+]
 ```
