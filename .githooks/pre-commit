@@ -18,4 +18,4 @@ if ! [[ "$PATH" =~ \.nvm ]]; then
   fi
 fi
 
-npm run test
+(npm run lint || exit 1;) && npm run test
