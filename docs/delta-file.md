@@ -148,6 +148,9 @@ v3 more imperative example `20240809_ba178d0a-d573-47a5-8e54-78742fc7e6dd.json` 
 
 ```json
 [
+  "==>",
+  ["/=> array_function", "var1", ["::", ["::num", "@var1"], 2]],
+  ["==> array_function", 2],
   [
     "==> metadata",
     {
@@ -177,14 +180,15 @@ v3 more imperative example `20240809_ba178d0a-d573-47a5-8e54-78742fc7e6dd.json` 
     "==> use_defaults",
     "some_table",
     [
-      "==|",
-      ["alias"],
+      "/=>",
+      "alias",
       [
         "::obj",
-        ["::", "aliasField", "@alias"],
-        ["::", "anotherField", ["::str", "@alias"]],
+        ["::", "aliasField", ["::str", "@alias"]],
         ["::", "code", 100],
         ["::", "creatorId", ["==> find", "user", ["name", "system"], "id"]]
+        ["::", "number add", ["::num.+", 10, "20"]],
+        ["::", "array map", ["::.map", [1, 2, 3], ["/=>", ["item"], ["::num.*", "@item", 2]]]],
       ]
     ]
   ],
@@ -213,7 +217,7 @@ v3 more imperative example `20240809_ba178d0a-d573-47a5-8e54-78742fc7e6dd.json` 
     [
       "::obj",
       ["::", "field1_boolean", true],
-      ["::", "field2_array", ["::arr", [1, 2, 3]]],
+      ["::", "field2_array", ["::", [1, 2, 3]]],
       [
         "::",
         "field3_number",
@@ -229,18 +233,55 @@ v3 more imperative example `20240809_ba178d0a-d573-47a5-8e54-78742fc7e6dd.json` 
     ]
   ],
   [
-    "==> test_row_exists",
+    "==> test.row_exists",
     "some_table",
     "af591fc6-8a65-47e3-9484-c699bd5e5994",
     "alias_name"
   ],
   [
-    "==> test_row_not_exists",
+    "==> test.row_not_exists",
     "some_table",
     "024b05cd-89fb-43e5-8c73-297dec1d1af4",
     "5979b82e-d74f-46c1-9848-5e0ab1412c63",
     "a3baab52-91ac-4435-a6ca-eb6848c887fd",
     "baaaa4b9-c634-493d-af09-a1236ea419b8"
+  ]
+]
+```
+
+```json
+[
+  ["==>", ["/=> custom_fun", "res", ["::", "@res"]]],
+  [
+    "==?",
+    ["::bool.<", ["::.len", "#arguments"], 3],
+    ["::err", "arguments less than 3"]
+  ],
+  [
+    "==?",
+    ["::bool.>", ["::.len", "#arguments"], 3],
+    ["::err", "arguments more than 3"]
+  ],
+  [
+    "::.map",
+    "#arguments",
+    [
+      "/=>",
+      ["argument", "index"],
+      [
+        "==> seq",
+        ["==?", ["::bool.=", "@index", 0], ["::str", "@argument"]],
+        ["==?", ["::bool.between", "@index", 1, 3], ["::num", "@argument"]],
+        ["::num", 5]
+      ],
+      [
+        "==> pipe",
+        "",
+        ["/=>", ["res"], ["::str", "@res", "@", "res", " "]],
+        ["/=>", ["res"], ["::str", "@res", " "]],
+        ["/=>", ["res"], ["::str", "@res", " "]]
+      ]
+    ]
   ]
 ]
 ```
