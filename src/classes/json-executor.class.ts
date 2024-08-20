@@ -12,12 +12,14 @@ import {
   JsonExecutorAbstractSyntaxTreeType,
   JsonExecutorConstantType,
   JsonExecutorFunctionOptions,
+  JsonExecutorFunctionWrapperOptions,
   JsonExecutorNextFunctionType,
   JsonExecutorNextTreeFunctionType,
   JsonExecutorNodeTreeOptionsType,
   JsonExecutorNodeTreeType,
   JsonExecutorOperationConstructorType,
   JsonExecutorOperationFunctionAccumulatorType,
+  JsonExecutorOperationFunctionComplexType,
   JsonExecutorOperationFunctionSimpleType,
   JsonExecutorOperationFunctionType,
   JsonExecutorRawFunctionType,
@@ -36,7 +38,7 @@ export class JsonExecutorNodeBuilder {
   public static readonly DEFAULT_OPERATOR =
     /^(==>|\/=>|==\?[?>]?)\s*((\w+)\.)?([\w+\-*/=^<>?(){}[\]]*)?$/;
   public static readonly FORMATTER_OPERATOR =
-    /^(::\w*)\.?([\w+\-*/=^<>?(){}[\]]*)?$/;
+    /^(::)(\w*)\.?([\w+\-*/=^<>?(){}[\]]*)?$/;
   public static readonly PATTERN_VARIABLE = /^([@#])(\w+)$/;
 
   public static matchCategory(
@@ -66,7 +68,8 @@ export class JsonExecutorNodeBuilder {
         type: 'operand';
         category: JsonExecutorOperandCategoryEnum;
         operand: string;
-        name: string | null;
+        group: string | null;
+        name: string;
       }
     | { type: 'local_var' | 'common_var'; name: string }
     | { type: 'constant' } {
@@ -81,8 +84,8 @@ export class JsonExecutorNodeBuilder {
           `unknown string: "${inputTrim}", pattern: "${JsonExecutorNodeBuilder.PATTERN_VARIABLE}"`,
         );
       } else {
-        const variableVariant = match![1] as string;
-        const name = match![2] as string;
+        const variableVariant = match[1] as string;
+        const name = match[2] as string;
         if (name) {
           return {
             type: variableVariant === '#' ? 'common_var' : 'local_var',
@@ -109,12 +112,14 @@ export class JsonExecutorNodeBuilder {
           );
         } else {
           const operand = match[1] as string;
-          const name = (match[2] ?? null) as string | null;
+          const group = (match[2] ?? null) as string | null;
+          const name = (match[3] ?? null) as string | null;
           return {
             type: 'operand',
             operand,
             category,
-            name: name === '' ? null : name,
+            group: group === '' ? null : group,
+            name: name === '' ? inputTrim : (name ?? inputTrim),
           };
         }
       } else {
@@ -129,9 +134,10 @@ export class JsonExecutorNodeBuilder {
           const name = (match[4] ?? null) as string | null;
           return {
             type: 'operand',
-            operand: group ? `${operand}${group}` : operand,
+            group: group === '' ? null : group,
+            operand,
             category,
-            name: name === '' ? null : name,
+            name: name === '' ? inputTrim : (name ?? inputTrim),
           };
         }
       }
@@ -154,7 +160,7 @@ export class JsonExecutorNodeBuilder {
           args.length === 1
         ) {
           const [firstArg] = args;
-          if (parsed.operand === '::') {
+          if (parsed.name === '::') {
             return {
               type: 'constant',
               value: Array.isArray(firstArg) ? firstArg : [firstArg],
@@ -165,7 +171,7 @@ export class JsonExecutorNodeBuilder {
             typeof firstArg !== 'object' &&
             !Array.isArray(firstArg)
           ) {
-            if (parsed.operand === '::str') {
+            if (parsed.name === '::str') {
               return {
                 type: 'constant',
                 value: String(firstArg),
@@ -176,7 +182,7 @@ export class JsonExecutorNodeBuilder {
                 ? JsonExecutorNodeBuilder.parseString(firstArg)
                 : null;
             if (
-              parsed.operand === '::num' &&
+              parsed.name === '::num' &&
               (parsedFirstArg ? parsedFirstArg.type === 'constant' : true)
             ) {
               const result = Number(firstArg);
@@ -186,7 +192,7 @@ export class JsonExecutorNodeBuilder {
               };
             }
             if (
-              parsed.operand === '::bool' &&
+              parsed.name === '::bool' &&
               (parsedFirstArg ? parsedFirstArg.type === 'constant' : true)
             ) {
               return {
@@ -252,10 +258,7 @@ export class JsonExecutorNodeBuilder {
 
   protected static buildNodes(
     input: JsonExecutorAbstractSyntaxTreeType,
-    operations: Map<
-      JsonExecutorOperandCategoryEnum,
-      Map<string, JsonExecutorFunction>
-    >,
+    operations: Map<string, Map<string, JsonExecutorFunction>>,
     root: JsonExecutorRootNode,
     parentNode:
       | JsonExecutorOperationNode
@@ -302,13 +305,12 @@ export class JsonExecutorNodeBuilder {
       );
     } else if (/* === OPERAND? === */ input.type === 'operand') {
       if (input.category === JsonExecutorOperandCategoryEnum.custom) {
-        const name = input.name!;
         const [firstArg] = input.args;
         if (!firstArg) {
           return getError('Callback body not defined');
         }
         const node = new JsonExecutorCallbackNode(input.additions ?? []);
-        customDeclarationFunctions.set(name, node);
+        customDeclarationFunctions.set(input.name, node);
         return JsonExecutorNodeBuilder.buildNodes(
           firstArg,
           operations,
@@ -363,13 +365,14 @@ export class JsonExecutorNodeBuilder {
           );
         }
         if (!node) {
-          const operationCategory = operations.get(input.category);
+          const operationCategory = operations.get(
+            input.group ? `${input.category}.${input.group}` : input.category,
+          );
           if (!operationCategory) {
             return getError('Operation category not defined');
           }
 
-          const operation =
-            operationCategory.get(input.name ?? input.operand) ?? null;
+          const operation = operationCategory.get(input.name) ?? null;
           if (!operation) {
             return getError('Operation not founded');
           }
@@ -400,19 +403,27 @@ export class JsonExecutorNodeBuilder {
   }
 
   public static define(
-    input: JsonExecutorFunctionOptions,
+    input: { pattern: string } & JsonExecutorFunctionWrapperOptions,
   ): JsonExecutorFunction | null {
-    return JsonExecutorFunction.build(input);
+    const parsed = JsonExecutorNodeBuilder.parseString(
+      /^\s*\w/.test(input.pattern) ? `==> ${input.pattern}` : input.pattern,
+    );
+    return parsed.type === 'operand'
+      ? JsonExecutorFunction.build({
+          ...input,
+          category: parsed.category,
+          name: parsed.name,
+          group: parsed.group ?? undefined,
+        })
+      : null;
   }
 
   public static root() {
     return new JsonExecutorRootNode();
   }
 
-  private readonly operations: Map<
-    JsonExecutorOperandCategoryEnum,
-    Map<string, JsonExecutorFunction>
-  > = new Map();
+  private readonly operations: Map<string, Map<string, JsonExecutorFunction>> =
+    new Map();
   constructor(
     ...args: (
       | JsonExecutorOperationConstructorType
@@ -504,7 +515,7 @@ export class JsonExecutorNodeBuilder {
       | JsonExecutorFunction
       | null
     )[]
-  ): Map<JsonExecutorOperandCategoryEnum, Map<string, JsonExecutorFunction>> {
+  ): Map<string, Map<string, JsonExecutorFunction>> {
     return [
       ...args.filter(
         (item): item is JsonExecutorFunction =>
@@ -526,15 +537,18 @@ export class JsonExecutorNodeBuilder {
             .filter((item) => item !== null),
         ),
     ].reduce((prev, curr) => {
-      const byCategory = prev.has(curr.category)
-        ? prev.get(curr.category)!
-        : prev.set(curr.category, new Map()).get(curr.category)!;
+      const group = curr.group
+        ? `${curr.category}.${curr.group}`
+        : `${curr.category}`;
+      const byGroup = prev.has(group)
+        ? prev.get(group)!
+        : prev.set(group, new Map()).get(group)!;
 
-      if (!byCategory.has(curr.name ?? curr.category)) {
-        byCategory.set(curr.name ?? curr.category, curr);
+      if (!byGroup.has(curr.name)) {
+        byGroup.set(curr.name, curr);
       }
       return prev;
-    }, new Map<JsonExecutorOperandCategoryEnum, Map<string, JsonExecutorFunction>>());
+    }, new Map<string, Map<string, JsonExecutorFunction>>());
   }
 }
 
@@ -586,8 +600,8 @@ export class JsonExecutorFunction {
   }
 
   public static fromAccumulator(input: {
-    category: JsonExecutorOperandCategoryEnum;
-    name?: string;
+    category?: JsonExecutorOperandCategoryEnum;
+    name: string;
     fn: JsonExecutorOperationFunctionAccumulatorType;
   }) {
     const exec: JsonExecutorOperationFunctionType = (
@@ -638,15 +652,56 @@ export class JsonExecutorFunction {
       localNext(nodes, [], []);
     };
     return JsonExecutorFunction.build({
-      category: input.category,
-      name: input.name,
+      ...input,
+      wrapper: undefined,
+      fn: exec,
+    });
+  }
+
+  public static fromComplex(input: {
+    category?: JsonExecutorOperandCategoryEnum;
+    name: string;
+    fn: JsonExecutorOperationFunctionComplexType;
+  }) {
+    const exec: JsonExecutorOperationFunctionType = (
+      next,
+      commonVariables,
+      localVariables,
+      ...nodes
+    ) => {
+      const localNext = (
+        nodes: JsonExecutorNode<JsonExecutorNodeVariantEnum>[],
+        values: JsonExecutorReturnType[],
+      ) => {
+        const [node, ...splitNodes] = nodes;
+        if (node) {
+          node.exec(
+            (result) => {
+              if (result instanceof Error) {
+                next(result);
+              } else {
+                localNext(splitNodes, [...values, result]);
+              }
+            },
+            commonVariables,
+            localVariables,
+          );
+        } else {
+          input.fn(next, ...values);
+        }
+      };
+      localNext(nodes, []);
+    };
+    return JsonExecutorFunction.build({
+      ...input,
+      wrapper: undefined,
       fn: exec,
     });
   }
 
   public static fromSimple(input: {
-    category: JsonExecutorOperandCategoryEnum;
-    name?: string;
+    category?: JsonExecutorOperandCategoryEnum;
+    name: string;
     fn: JsonExecutorOperationFunctionSimpleType;
   }) {
     const exec: JsonExecutorOperationFunctionType = (
@@ -679,8 +734,8 @@ export class JsonExecutorFunction {
       localNext(nodes, []);
     };
     return JsonExecutorFunction.build({
-      category: input.category,
-      name: input.name,
+      ...input,
+      wrapper: undefined,
       fn: exec,
     });
   }
@@ -705,7 +760,8 @@ export class JsonExecutorFunction {
         return JsonExecutorFunction.build({
           category: parsed.category,
           wrapper,
-          name: parsed.name ?? parsed.operand,
+          group: parsed.group ?? undefined,
+          name: parsed.name,
           fn,
         });
       } else {
@@ -723,17 +779,21 @@ export class JsonExecutorFunction {
       ? JsonExecutorFunction.fromAccumulator(input)
       : input.wrapper === JsonExecutorOperandWrapperEnum.simple
         ? JsonExecutorFunction.fromSimple(input)
-        : new JsonExecutorFunction(
-            input.fn,
-            input.category,
-            input.name ?? input.category,
-          );
+        : input.wrapper === JsonExecutorOperandWrapperEnum.complex
+          ? JsonExecutorFunction.fromComplex(input)
+          : new JsonExecutorFunction(
+              input.fn,
+              input.category,
+              input.group,
+              input.name,
+            );
   }
 
   constructor(
     public readonly exec: JsonExecutorOperationFunctionType,
-    public readonly category: JsonExecutorOperandCategoryEnum,
-    public readonly name: string | null = null,
+    public readonly category: JsonExecutorOperandCategoryEnum = JsonExecutorOperandCategoryEnum.command,
+    public readonly group: string | null = null,
+    public readonly name: string,
   ) {}
 }
 
@@ -858,6 +918,7 @@ export class JsonExecutorRootNode extends JsonExecutorNode<JsonExecutorNodeVaria
       JsonExecutorNodeVariantEnum.root,
       JsonExecutorFunction.build({
         category: JsonExecutorOperandCategoryEnum.unknown,
+        name: 'root',
         fn: (next, commonVariables, localVariables, node) => {
           node.exec(next, commonVariables, localVariables);
         },
@@ -927,6 +988,7 @@ export class JsonExecutorConstantNode extends JsonExecutorNode<JsonExecutorNodeV
       JsonExecutorNodeVariantEnum.constant,
       JsonExecutorFunction.build({
         category: JsonExecutorOperandCategoryEnum.unknown,
+        name: 'constant',
         fn:
           constant instanceof Error
             ? (next) => next(constant)
@@ -977,6 +1039,7 @@ export class JsonExecutorVariableNode<
       variant,
       JsonExecutorFunction.build({
         category: JsonExecutorOperandCategoryEnum.unknown,
+        name: 'variable',
         fn:
           variant === JsonExecutorNodeVariantEnum.common_var
             ? (next, commonVariables) => {
@@ -1111,6 +1174,7 @@ export class JsonExecutorCallbackNode extends JsonExecutorOperationNode<JsonExec
       JsonExecutorNodeVariantEnum.callback,
       JsonExecutorFunction.build({
         category: JsonExecutorOperandCategoryEnum.callback,
+        name: 'callback',
         fn: (next, commonVariables, localVariables, node) => {
           node.exec(next, commonVariables, localVariables);
         },

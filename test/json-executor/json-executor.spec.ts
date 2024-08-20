@@ -1,8 +1,5 @@
 import { JsonExecutorNodeBuilder } from 'src/classes/json-executor.class';
-import {
-  JsonExecutorOperandCategoryEnum,
-  JsonExecutorOperandWrapperEnum,
-} from 'src/enum/json-executor.enum';
+import { JsonExecutorOperandWrapperEnum } from 'src/enum/json-executor.enum';
 import { JsonExecutorReturnType } from 'src/types/json-executor.type';
 
 describe('json executor parser', () => {
@@ -11,66 +8,77 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '==>',
       category: 'exec',
-      name: null,
+      group: null,
+      name: '==>',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=>')).toEqual({
       type: 'operand',
       operand: '/=>',
       category: 'callback',
-      name: null,
+      group: null,
+      name: '/=>',
     });
     expect(JsonExecutorNodeBuilder.parseString('==?')).toEqual({
       type: 'operand',
       operand: '==?',
       category: 'condition',
-      name: null,
+      group: null,
+      name: '==?',
     });
     expect(JsonExecutorNodeBuilder.parseString('==??')).toEqual({
       type: 'operand',
       operand: '==??',
       category: 'condition',
-      name: null,
+      group: null,
+      name: '==??',
     });
     expect(JsonExecutorNodeBuilder.parseString('::')).toEqual({
       type: 'operand',
       operand: '::',
       category: 'formatter',
-      name: null,
+      group: null,
+      name: '::',
     });
     expect(JsonExecutorNodeBuilder.parseString('  ==>  ')).toEqual({
       type: 'operand',
       operand: '==>',
       category: 'exec',
-      name: null,
+      group: null,
+      name: '==>',
     });
     expect(JsonExecutorNodeBuilder.parseString('  /=>  ')).toEqual({
       type: 'operand',
       operand: '/=>',
       category: 'callback',
-      name: null,
+      group: null,
+      name: '/=>',
     });
     expect(JsonExecutorNodeBuilder.parseString('  ==?  ')).toEqual({
       type: 'operand',
       operand: '==?',
       category: 'condition',
-      name: null,
+      group: null,
+      name: '==?',
     });
     expect(JsonExecutorNodeBuilder.parseString('  ==??  ')).toEqual({
       type: 'operand',
       operand: '==??',
       category: 'condition',
-      name: null,
+      group: null,
+      name: '==??',
     });
     expect(JsonExecutorNodeBuilder.parseString('  ::  ')).toEqual({
       type: 'operand',
       operand: '::',
       category: 'formatter',
-      name: null,
+      group: null,
+      name: '::',
     });
-    expect(JsonExecutorNodeBuilder.parseString('  ==>   test_sum  ')).toEqual({
+    expect(JsonExecutorNodeBuilder.parseString(' ==>   test_sum  ')).toEqual({
       type: 'operand',
       operand: '==>',
       category: 'command',
+      group: null,
       name: 'test_sum',
     });
     expect(JsonExecutorNodeBuilder.parseString('==>  @test ')).toEqual({
@@ -82,30 +90,35 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '==>',
       category: 'command',
+      group: null,
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('==>>a')).toEqual({
       type: 'operand',
       operand: '==>',
       category: 'command',
+      group: null,
       name: '>a',
     });
     expect(JsonExecutorNodeBuilder.parseString('==>a>')).toEqual({
       type: 'operand',
       operand: '==>',
       category: 'command',
+      group: null,
       name: 'a>',
     });
     expect(JsonExecutorNodeBuilder.parseString('==> parent.child')).toEqual({
       type: 'operand',
-      operand: '==>parent',
+      operand: '==>',
       category: 'command',
+      group: 'parent',
       name: 'child',
     });
     expect(JsonExecutorNodeBuilder.parseString('  /=>   test_sum  ')).toEqual({
       type: 'operand',
       operand: '/=>',
       category: 'custom',
+      group: null,
       name: 'test_sum',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=>  @test ')).toEqual({
@@ -117,18 +130,21 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '/=>',
       category: 'custom',
+      group: null,
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=>>a')).toEqual({
       type: 'operand',
       operand: '/=>',
       category: 'custom',
+      group: null,
       name: '>a',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=>a>')).toEqual({
       type: 'operand',
       operand: '/=>',
       category: 'custom',
+      group: null,
       name: 'a>',
     });
     expect(
@@ -137,12 +153,14 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '==?',
       category: 'condition',
+      group: null,
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=> parent.child')).toEqual({
       type: 'operand',
-      operand: '/=>parent',
+      operand: '/=>',
       category: 'custom',
+      group: 'parent',
       name: 'child',
     });
     expect(
@@ -151,54 +169,63 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '==??',
       category: 'condition',
+      group: null,
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('==?>a')).toEqual({
       type: 'operand',
       operand: '==?>',
       category: 'condition',
+      group: null,
       name: 'a',
     });
     expect(JsonExecutorNodeBuilder.parseString('==??a')).toEqual({
       type: 'operand',
       operand: '==??',
       category: 'condition',
+      group: null,
       name: 'a',
     });
     expect(JsonExecutorNodeBuilder.parseString('==?a>')).toEqual({
       type: 'operand',
       operand: '==?',
       category: 'condition',
+      group: null,
       name: 'a>',
     });
     expect(JsonExecutorNodeBuilder.parseString('==? parent.child')).toEqual({
       type: 'operand',
-      operand: '==?parent',
+      operand: '==?',
       category: 'condition',
+      group: 'parent',
       name: 'child',
     });
     expect(JsonExecutorNodeBuilder.parseString('==?? parent.child')).toEqual({
       type: 'operand',
-      operand: '==??parent',
+      operand: '==??',
       category: 'condition',
+      group: 'parent',
       name: 'child',
     });
     expect(JsonExecutorNodeBuilder.parseString('==?> parent.child')).toEqual({
       type: 'operand',
-      operand: '==?>parent',
+      operand: '==?>',
       category: 'condition',
+      group: 'parent',
       name: 'child',
     });
     expect(JsonExecutorNodeBuilder.parseString('::test')).toEqual({
       type: 'operand',
-      operand: '::test',
+      operand: '::',
       category: 'formatter',
-      name: null,
+      group: 'test',
+      name: '::test',
     });
     expect(JsonExecutorNodeBuilder.parseString('::.test')).toEqual({
       type: 'operand',
       operand: '::',
       category: 'formatter',
+      group: null,
       name: 'test',
     });
     expect(JsonExecutorNodeBuilder.parseString('::  test')).toEqual({
@@ -210,8 +237,9 @@ describe('json executor parser', () => {
       ),
     ).toEqual({
       type: 'operand',
-      operand: '::test_category',
+      operand: '::',
       category: 'formatter',
+      group: 'test_category',
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('::>a')).toEqual({
@@ -221,6 +249,7 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '::',
       category: 'formatter',
+      group: null,
       name: '>a',
     });
     expect(JsonExecutorNodeBuilder.parseString('::a>')).toEqual({
@@ -230,12 +259,14 @@ describe('json executor parser', () => {
       type: 'operand',
       operand: '::',
       category: 'formatter',
+      group: null,
       name: 'a>',
     });
     expect(JsonExecutorNodeBuilder.parseString('::a.>')).toEqual({
       type: 'operand',
-      operand: '::a',
+      operand: '::',
       category: 'formatter',
+      group: 'a',
       name: '>',
     });
     expect(JsonExecutorNodeBuilder.parseString('::a.>.w.d')).toEqual({
@@ -305,7 +336,8 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'exec',
       operand: '==>',
-      name: null,
+      group: null,
+      name: '==>',
       additions: null,
       args: [],
     });
@@ -315,21 +347,24 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'exec',
       operand: '==>',
-      name: null,
+      group: null,
+      name: '==>',
       additions: null,
       args: [
         {
           type: 'operand',
           category: 'exec',
           operand: '==>',
-          name: null,
+          group: null,
+          name: '==>',
           additions: null,
           args: [
             {
               type: 'operand',
               category: 'exec',
               operand: '==>',
-              name: null,
+              group: null,
+              name: '==>',
               additions: null,
               args: [],
             },
@@ -341,7 +376,8 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'exec',
       operand: '==>',
-      name: null,
+      group: null,
+      name: '==>',
       additions: null,
       args: [
         { type: 'constant', value: 1 },
@@ -360,14 +396,16 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'formatter',
       operand: '::',
-      name: null,
+      group: null,
+      name: '::',
       additions: null,
       args: [
         {
           type: 'operand',
           category: 'formatter',
-          operand: '::str',
-          name: null,
+          operand: '::',
+          group: 'str',
+          name: '::str',
           additions: null,
           args: [
             { type: 'constant', value: 2 },
@@ -386,8 +424,9 @@ describe('json executor parser', () => {
     ).toEqual({
       type: 'operand',
       category: 'formatter',
-      operand: '::str',
-      name: null,
+      operand: '::',
+      group: 'str',
+      name: '::str',
       additions: null,
       args: [
         { type: 'local_var', name: 'variable' },
@@ -401,8 +440,9 @@ describe('json executor parser', () => {
     expect(JsonExecutorNodeBuilder.parseInput(['::num', '@variable'])).toEqual({
       type: 'operand',
       category: 'formatter',
-      operand: '::num',
-      name: null,
+      operand: '::',
+      group: 'num',
+      name: '::num',
       additions: null,
       args: [{ type: 'local_var', name: 'variable' }],
     });
@@ -412,7 +452,8 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'callback',
       operand: '/=>',
-      name: null,
+      group: null,
+      name: '/=>',
       additions: ['variable'],
       args: [{ type: 'local_var', name: 'variable' }],
     });
@@ -422,7 +463,8 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'callback',
       operand: '/=>',
-      name: null,
+      group: null,
+      name: '/=>',
       additions: ['variable'],
       args: [{ type: 'local_var', name: 'variable' }],
     });
@@ -438,7 +480,8 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'callback',
       operand: '/=>',
-      name: null,
+      group: null,
+      name: '/=>',
       additions: ['variable'],
       args: [{ type: 'local_var', name: 'variable' }],
     });
@@ -452,13 +495,15 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'callback',
       operand: '/=>',
-      name: null,
+      group: null,
+      name: '/=>',
       additions: ['variable1', 'variable2'],
       args: [
         {
           type: 'operand',
           category: 'formatter',
-          operand: '::num',
+          operand: '::',
+          group: 'num',
           name: '+',
           additions: null,
           args: [
@@ -478,6 +523,7 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'custom',
       operand: '/=>',
+      group: null,
       name: 'fun_custom',
       additions: ['variable'],
       args: [{ type: 'local_var', name: 'variable' }],
@@ -492,6 +538,7 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'custom',
       operand: '/=>',
+      group: null,
       name: 'fun_custom',
       additions: ['variable'],
       args: [{ type: 'local_var', name: 'variable' }],
@@ -508,6 +555,7 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'custom',
       operand: '/=>',
+      group: null,
       name: 'fun_custom',
       additions: ['variable'],
       args: [{ type: 'local_var', name: 'variable' }],
@@ -522,13 +570,15 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'custom',
       operand: '/=>',
+      group: null,
       name: 'fun_custom',
       additions: ['variable1', 'variable2'],
       args: [
         {
           type: 'operand',
           category: 'formatter',
-          operand: '::num',
+          operand: '::',
+          group: 'num',
           name: '+',
           additions: null,
           args: [
@@ -542,7 +592,8 @@ describe('json executor parser', () => {
       type: 'operand',
       category: 'condition',
       operand: '==?',
-      name: null,
+      group: null,
+      name: '==?',
       additions: null,
       args: [
         { type: 'constant', value: true },
@@ -664,8 +715,7 @@ describe('json executor parser', () => {
   test('define custom functions', async () => {
     const jsonExecutor = new JsonExecutorNodeBuilder(
       JsonExecutorNodeBuilder.define({
-        name: 'test_sum',
-        category: JsonExecutorOperandCategoryEnum.command,
+        pattern: 'test_sum',
         wrapper: JsonExecutorOperandWrapperEnum.simple,
         fn: (...nodeResults: JsonExecutorReturnType[]) =>
           nodeResults.reduce((acc: number, curr) => acc + Number(curr), 0),

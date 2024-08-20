@@ -20,5 +20,6 @@ export enum JsonExecutorOperandCategoryEnum {
 export enum JsonExecutorOperandWrapperEnum {
   none = 'none',
   simple = 'simple',
+  complex = 'complex',
   accumulator = 'accumulator',
 }

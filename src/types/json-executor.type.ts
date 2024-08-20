@@ -10,8 +10,8 @@ import {
 
 /* eslint-disable */
 export type JsonExecutorRawFunctionType = (...nodes: any[]) => any | void;
+export type JsonExecutorOperationConstructorType = new (...args: any[]) => void;
 /* eslint-enable */
-export type JsonExecutorOperationConstructorType = new () => void;
 
 export type JsonExecutorConstantType =
   | number
@@ -32,7 +32,8 @@ export type JsonExecutorAbstractSyntaxTreeType =
       type: 'operand';
       category: JsonExecutorOperandCategoryEnum;
       operand: string;
-      name: string | null;
+      group: string | null;
+      name: string;
       additions: string[] | null;
       args: JsonExecutorAbstractSyntaxTreeType[];
     }
@@ -42,10 +43,7 @@ export type JsonExecutorAbstractSyntaxTreeType =
       value: JsonExecutorConstantType | null;
     };
 
-export type JsonExecutorFunctionOptions = {
-  category: JsonExecutorOperandCategoryEnum;
-  name?: string;
-} & (
+export type JsonExecutorFunctionWrapperOptions =
   | {
       wrapper?: JsonExecutorOperandWrapperEnum.none;
       fn: JsonExecutorOperationFunctionType;
@@ -55,10 +53,19 @@ export type JsonExecutorFunctionOptions = {
       fn: JsonExecutorOperationFunctionSimpleType;
     }
   | {
+      wrapper: JsonExecutorOperandWrapperEnum.complex;
+      fn: JsonExecutorOperationFunctionComplexType;
+    }
+  | {
       wrapper: JsonExecutorOperandWrapperEnum.accumulator;
       fn: JsonExecutorOperationFunctionAccumulatorType;
-    }
-);
+    };
+
+export type JsonExecutorFunctionOptions = {
+  category?: JsonExecutorOperandCategoryEnum;
+  group?: string;
+  name: string;
+} & JsonExecutorFunctionWrapperOptions;
 
 export type JsonExecutorNextFunctionType = (
   result: JsonExecutorReturnWithErrorType,
@@ -74,6 +81,11 @@ export type JsonExecutorOperationFunctionType = (
 export type JsonExecutorOperationFunctionSimpleType = (
   ...nodeResults: JsonExecutorReturnType[]
 ) => JsonExecutorReturnWithErrorType;
+
+export type JsonExecutorOperationFunctionComplexType = (
+  next: JsonExecutorNextFunctionType,
+  ...nodeResults: JsonExecutorReturnType[]
+) => void;
 
 export type JsonExecutorOperationFunctionAccumulatorType = (
   next: JsonExecutorNextFunctionType,
