@@ -210,4 +210,31 @@ export class JsonExecutorFormatterUtil {
       ? other.reduce((acc: number, curr) => acc - curr, first)
       : null;
   }
+
+  @define({ pattern: '::obj', wrapper: 'simple' })
+  public static obj(
+    ...nodeResults: JsonExecutorReturnType[]
+  ): Record<string, unknown> {
+    return nodeResults.reduce((acc: Record<string, unknown>, curr) => {
+      if (Array.isArray(curr)) {
+        const [key, value] = curr;
+        if (typeof key === 'string') {
+          return { ...acc, [key]: value ?? null };
+        } else if (key && typeof key === 'object') {
+          return {
+            ...acc,
+            ...JsonExecutorFormatterUtil.obj(
+              ...(curr as JsonExecutorReturnType[]),
+            ),
+          };
+        } else {
+          return acc;
+        }
+      } else if (curr && typeof curr === 'object') {
+        return { ...acc, ...curr };
+      } else {
+        return acc;
+      }
+    }, {});
+  }
 }

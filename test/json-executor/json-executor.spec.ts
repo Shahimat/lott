@@ -688,6 +688,38 @@ describe('json executor parser', () => {
     ]);
     expect(await jsonExecutor.test(['::num.+', 1, 2, [3], [3, 4]])).toEqual(6);
     expect(await jsonExecutor.test(['::num.-', 1, 2, [3], [3, 4]])).toEqual(-4);
+    expect(await jsonExecutor.test(['::obj', 1, 2])).toEqual({});
+    expect(await jsonExecutor.test(['::obj', { field: 'test' }])).toEqual({
+      field: 'test',
+    });
+    expect(
+      await jsonExecutor.test(['::obj', { field: 'test' }, { test: 'field' }]),
+    ).toEqual({
+      field: 'test',
+      test: 'field',
+    });
+    expect(
+      await jsonExecutor.test(['::obj', ['field', 'test'], ['test', true]]),
+    ).toEqual({
+      field: 'test',
+      test: true,
+    });
+    expect(
+      await jsonExecutor.test([
+        '::obj',
+        [{ field: 'test' }, { test: 'field' }],
+        [{ test: 10 }, { test2: true }],
+      ]),
+    ).toEqual({
+      field: 'test',
+      test: 10,
+      test2: true,
+    });
+    expect(await jsonExecutor.test(['::obj', ['::', 'field', 'test']])).toEqual(
+      {
+        field: 'test',
+      },
+    );
 
     /* === CONDITION === */
     expect(await jsonExecutor.test(['==?', true, 1, 2])).toEqual(1);
