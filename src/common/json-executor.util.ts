@@ -239,7 +239,15 @@ export class JsonExecutorFormatterUtil {
           return acc;
         }
       } else if (curr && typeof curr === 'object') {
+        if (
+          curr instanceof Set ||
+          curr instanceof Date ||
+          curr instanceof Map
+        ) {
+          return acc;
+        } else {
         return { ...acc, ...curr };
+        }
       } else {
         return acc;
       }

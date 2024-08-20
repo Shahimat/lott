@@ -708,8 +708,10 @@ describe('json executor parser', () => {
         null,
         [3],
         [[['text']], { test: true }],
+        new Date(),
+        new Map(),
       ]),
-    ).toEqual([1, 2, 3, 'text', { test: true }]);
+    ).toEqual([1, 2, 3, 'text', { test: true }, new Date(), new Map()]);
     expect(
       await jsonExecutor.test([
         '::num',
@@ -750,11 +752,17 @@ describe('json executor parser', () => {
       test: 10,
       test2: true,
     });
-    expect(await jsonExecutor.test(['::obj', ['::', 'field', 'test']])).toEqual(
-      {
+    expect(
+      await jsonExecutor.test([
+        '::obj',
+        ['::', 'field', 'test'],
+        new Date(),
+        new Map(),
+        new Set([1, 2]),
+      ]),
+    ).toEqual({
         field: 'test',
-      },
-    );
+    });
     expect(await jsonExecutor.test(['::err', 1])).toEqual(new Error('1'));
     expect(await jsonExecutor.test(['::err', 1, 'text', true])).toEqual(
       new Error('1,text,true'),
