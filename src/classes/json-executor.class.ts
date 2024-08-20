@@ -32,25 +32,28 @@ import {
  * - CONFIGURES BASE & CUSTOM OPERATIONS FOR USING IN FORMAT
  */
 export class JsonExecutorNodeBuilder {
-  public static readonly PATTERN_OPERATOR =
-    /^\s*(::\w*|==>|\/=>|==\?[?>]?)\s*\.?([\w+\-*/=^<>?(){}[\]]*)?\s*$/;
-  public static readonly PATTERN_VARIABLE = /^\s*([@#])(\w+)\s*$/;
+  public static readonly PATTERN_OPERATOR = /^(::|==>|\/=>|==\?[?>]?).*$/;
+  public static readonly DEFAULT_OPERATOR =
+    /^(==>|\/=>|==\?[?>]?)\s*((\w+)\.)?([\w+\-*/=^<>?(){}[\]]*)?$/;
+  public static readonly FORMATTER_OPERATOR =
+    /^(::\w*)\.?([\w+\-*/=^<>?(){}[\]]*)?$/;
+  public static readonly PATTERN_VARIABLE = /^([@#])(\w+)$/;
 
   public static matchCategory(
     operand: string,
   ): JsonExecutorOperandCategoryEnum {
-    if (/^\s*::\w*(\.[\w+\-*/=^<>?(){}[\]]*)?\s*$/.test(operand)) {
+    if (/^::\w*(\.[\w+\-*/=^<>?(){}[\]]*)?$/.test(operand)) {
       return JsonExecutorOperandCategoryEnum.formatter;
-    } else if (/^\s*==>\s*$/.test(operand)) {
+    } else if (/^==>$/.test(operand)) {
       return JsonExecutorOperandCategoryEnum.exec;
-    } else if (/^\s*==>\s*\w[\w+\-*/=^<>?(){}[\]]*\s*$/.test(operand)) {
+    } else if (/^==>\s*((\w+)\.)?([\w+\-*/=^<>?(){}[\]]*)?$/.test(operand)) {
       return JsonExecutorOperandCategoryEnum.command;
-    } else if (/^\s*\/=>\s*$/.test(operand)) {
+    } else if (/^\/=>$/.test(operand)) {
       return JsonExecutorOperandCategoryEnum.callback;
-    } else if (/^\s*\/=>\s*\w[\w+\-*/=^<>?(){}[\]]*\s*$/.test(operand)) {
+    } else if (/^\/=>\s*((\w+)\.)?([\w+\-*/=^<>?(){}[\]]*)?$/.test(operand)) {
       return JsonExecutorOperandCategoryEnum.custom;
     } else if (
-      /^\s*==\?[?>]?\s*(\w[\w+\-*/=^<>?(){}[\]]*)?\s*$/.test(operand)
+      /^==\?[?>]?\s*((\w+)\.)?([\w+\-*/=^<>?(){}[\]]*)?$/.test(operand)
     ) {
       return JsonExecutorOperandCategoryEnum.condition;
     } else {
@@ -70,36 +73,68 @@ export class JsonExecutorNodeBuilder {
     if (typeof input !== 'string') {
       return { type: 'constant' };
     }
-    if (JsonExecutorNodeBuilder.PATTERN_VARIABLE.test(input)) {
-      const match = JsonExecutorNodeBuilder.PATTERN_VARIABLE.exec(input);
-      const variableVariant = match![1] as string;
-      const name = match![2] as string;
-      if (name) {
-        return {
-          type: variableVariant === '#' ? 'common_var' : 'local_var',
-          name,
-        };
+    const inputTrim = input.trim();
+    if (JsonExecutorNodeBuilder.PATTERN_VARIABLE.test(inputTrim)) {
+      const match = JsonExecutorNodeBuilder.PATTERN_VARIABLE.exec(inputTrim);
+      if (!match) {
+        throw new Error(
+          `unknown string: "${inputTrim}", pattern: "${JsonExecutorNodeBuilder.PATTERN_VARIABLE}"`,
+        );
       } else {
-        return {
-          type: 'constant',
-        };
+        const variableVariant = match![1] as string;
+        const name = match![2] as string;
+        if (name) {
+          return {
+            type: variableVariant === '#' ? 'common_var' : 'local_var',
+            name,
+          };
+        } else {
+          return {
+            type: 'constant',
+          };
+        }
       }
-    } else if (JsonExecutorNodeBuilder.PATTERN_OPERATOR.test(input)) {
-      const match = JsonExecutorNodeBuilder.PATTERN_OPERATOR.exec(input);
-      const operand = match![1] as string;
-      const name = (match![2] ?? null) as string | null;
-      const category = JsonExecutorNodeBuilder.matchCategory(input);
+    } else if (JsonExecutorNodeBuilder.PATTERN_OPERATOR.test(inputTrim)) {
+      const category = JsonExecutorNodeBuilder.matchCategory(inputTrim);
       if (category === JsonExecutorOperandCategoryEnum.unknown) {
         return {
           type: 'constant',
         };
+      } else if (category === JsonExecutorOperandCategoryEnum.formatter) {
+        const match =
+          JsonExecutorNodeBuilder.FORMATTER_OPERATOR.exec(inputTrim);
+        if (!match) {
+          throw new Error(
+            `unknown string: "${inputTrim}", pattern: "${JsonExecutorNodeBuilder.FORMATTER_OPERATOR}"`,
+          );
+        } else {
+          const operand = match[1] as string;
+          const name = (match[2] ?? null) as string | null;
+          return {
+            type: 'operand',
+            operand,
+            category,
+            name: name === '' ? null : name,
+          };
+        }
+      } else {
+        const match = JsonExecutorNodeBuilder.DEFAULT_OPERATOR.exec(inputTrim);
+        if (!match) {
+          throw new Error(
+            `unknown string: "${inputTrim}", pattern: "${JsonExecutorNodeBuilder.DEFAULT_OPERATOR}"`,
+          );
+        } else {
+          const operand = match[1] as string;
+          const group = (match[3] ?? null) as string | null;
+          const name = (match[4] ?? null) as string | null;
+          return {
+            type: 'operand',
+            operand: group ? `${operand}${group}` : operand,
+            category,
+            name: name === '' ? null : name,
+          };
+        }
       }
-      return {
-        type: 'operand',
-        operand,
-        category,
-        name: name === '' ? null : name,
-      };
     } else {
       return {
         type: 'constant',

@@ -85,13 +85,22 @@ describe('json executor parser', () => {
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('==>>a')).toEqual({
-      type: 'constant',
+      type: 'operand',
+      operand: '==>',
+      category: 'command',
+      name: '>a',
     });
     expect(JsonExecutorNodeBuilder.parseString('==>a>')).toEqual({
       type: 'operand',
       operand: '==>',
       category: 'command',
       name: 'a>',
+    });
+    expect(JsonExecutorNodeBuilder.parseString('==> parent.child')).toEqual({
+      type: 'operand',
+      operand: '==>parent',
+      category: 'command',
+      name: 'child',
     });
     expect(JsonExecutorNodeBuilder.parseString('  /=>   test_sum  ')).toEqual({
       type: 'operand',
@@ -111,7 +120,10 @@ describe('json executor parser', () => {
       name: 'testTEST1230_+-*/=^<>?(){}[]',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=>>a')).toEqual({
-      type: 'constant',
+      type: 'operand',
+      operand: '/=>',
+      category: 'custom',
+      name: '>a',
     });
     expect(JsonExecutorNodeBuilder.parseString('/=>a>')).toEqual({
       type: 'operand',
@@ -126,6 +138,12 @@ describe('json executor parser', () => {
       operand: '==?',
       category: 'condition',
       name: 'testTEST1230_+-*/=^<>?(){}[]',
+    });
+    expect(JsonExecutorNodeBuilder.parseString('/=> parent.child')).toEqual({
+      type: 'operand',
+      operand: '/=>parent',
+      category: 'custom',
+      name: 'child',
     });
     expect(
       JsonExecutorNodeBuilder.parseString('==?? testTEST1230_+-*/=^<>?(){}[]'),
@@ -152,6 +170,24 @@ describe('json executor parser', () => {
       operand: '==?',
       category: 'condition',
       name: 'a>',
+    });
+    expect(JsonExecutorNodeBuilder.parseString('==? parent.child')).toEqual({
+      type: 'operand',
+      operand: '==?parent',
+      category: 'condition',
+      name: 'child',
+    });
+    expect(JsonExecutorNodeBuilder.parseString('==?? parent.child')).toEqual({
+      type: 'operand',
+      operand: '==??parent',
+      category: 'condition',
+      name: 'child',
+    });
+    expect(JsonExecutorNodeBuilder.parseString('==?> parent.child')).toEqual({
+      type: 'operand',
+      operand: '==?>parent',
+      category: 'condition',
+      name: 'child',
     });
     expect(JsonExecutorNodeBuilder.parseString('::test')).toEqual({
       type: 'operand',
