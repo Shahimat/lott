@@ -245,4 +245,15 @@ export class JsonExecutorFormatterUtil {
       }
     }, {});
   }
+
+  @define({ pattern: '::err', wrapper: 'simple' })
+  public static err(...nodeResults: JsonExecutorReturnType[]): Error {
+    return new Error(
+      nodeResults.length === 0
+        ? undefined
+        : nodeResults.length === 1
+          ? nodeResults[0]?.toString()
+          : nodeResults.toString(),
+    );
+  }
 }

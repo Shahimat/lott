@@ -755,6 +755,14 @@ describe('json executor parser', () => {
         field: 'test',
       },
     );
+    expect(await jsonExecutor.test(['::err', 1])).toEqual(new Error('1'));
+    expect(await jsonExecutor.test(['::err', 1, 'text', true])).toEqual(
+      new Error('1,text,true'),
+    );
+    expect(await jsonExecutor.test(['::err', { obj: true }])).toEqual(
+      new Error('[object Object]'),
+    );
+    expect(await jsonExecutor.test(['::err', [[]]])).toEqual(new Error());
 
     /* === CONDITION === */
     expect(await jsonExecutor.test(['==?', true, 1, 2])).toEqual(1);
