@@ -170,23 +170,31 @@ export class JsonExecutorBasicOperationsUtil {
 export class JsonExecutorFormatterUtil {
   @define({ pattern: '::', wrapper: 'simple' })
   public static arr(...nodeResults: JsonExecutorReturnType[]): unknown[] {
-    const arrValues = (...input: unknown[]): Array<unknown> =>
-      input.flatMap((item) => {
+    return nodeResults.flatMap((item) => {
         if (Array.isArray(item)) {
-          return arrValues(...item);
+        return JsonExecutorFormatterUtil.arr(
+          ...(item as JsonExecutorReturnType[]),
+        );
         } else {
           return isNil(item) ? [] : [item];
         }
       });
-    return arrValues(...nodeResults);
   }
 
   @define({ pattern: '::num', wrapper: 'simple' })
   public static num(...nodeResults: JsonExecutorReturnType[]): number[] {
     return nodeResults
-      .map((item) => {
+      .flatMap((item) => {
+        if (Array.isArray(item)) {
+          return JsonExecutorFormatterUtil.num(
+            ...(item as JsonExecutorReturnType[]),
+          );
+        } else if (typeof item === 'number' || typeof item === 'string') {
         const num = Number(item);
-        return Number.isNaN(num) ? null : num;
+          return [Number.isNaN(num) ? null : num];
+        } else {
+          return [];
+        }
       })
       .filter((item) => item !== null);
   }

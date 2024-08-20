@@ -682,12 +682,29 @@ describe('json executor parser', () => {
     ).toEqual(true);
 
     /* === FORMATTER === */
-    expect(await jsonExecutor.test(['::', 1, 2, null, [3]])).toEqual([1, 2, 3]);
-    expect(await jsonExecutor.test(['::num', 1, 2, [3], [3, 4]])).toEqual([
-      1, 2, 3,
-    ]);
-    expect(await jsonExecutor.test(['::num.+', 1, 2, [3], [3, 4]])).toEqual(6);
-    expect(await jsonExecutor.test(['::num.-', 1, 2, [3], [3, 4]])).toEqual(-4);
+    expect(
+      await jsonExecutor.test([
+        '::',
+        1,
+        2,
+        null,
+        [3],
+        [[['text']], { test: true }],
+      ]),
+    ).toEqual([1, 2, 3, 'text', { test: true }]);
+    expect(
+      await jsonExecutor.test([
+        '::num',
+        1,
+        2,
+        [3],
+        ['3', 'text', true, { object: true }, 4],
+      ]),
+    ).toEqual([1, 2, 3, 3, 4]);
+    expect(await jsonExecutor.test(['::num.+', 1, 2, [3], [3, 4]])).toEqual(13);
+    expect(await jsonExecutor.test(['::num.-', 1, 2, [3], [3, 4]])).toEqual(
+      -11,
+    );
     expect(await jsonExecutor.test(['::obj', 1, 2])).toEqual({});
     expect(await jsonExecutor.test(['::obj', { field: 'test' }])).toEqual({
       field: 'test',
