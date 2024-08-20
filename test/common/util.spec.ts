@@ -9,7 +9,9 @@ describe('util', () => {
     a.c.d = 20;
     expect(b).toEqual({ a: 1, b: [10, 20], c: { d: 10 } });
 
-    expect(Util.deepCopy(new Date())).toEqual(new Date());
+    expect(Util.deepCopy(new Date('2024-08-20T09:05:52.061Z'))).toEqual(
+      new Date('2024-08-20T09:05:52.061Z'),
+    );
     expect(Util.deepCopy(new Set([1, 2, 3]))).toEqual(new Set([1, 2, 3]));
     expect(Util.deepCopy(new Map([[1, 2]]))).toEqual(new Map([[1, 2]]));
     expect(Util.deepCopy(null)).toEqual(null);

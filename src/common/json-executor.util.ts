@@ -183,20 +183,14 @@ export class JsonExecutorFormatterUtil {
 
   @define({ pattern: '::num', wrapper: 'simple' })
   public static num(...nodeResults: JsonExecutorReturnType[]): number[] {
-    return nodeResults
-      .flatMap((item) => {
-        if (Array.isArray(item)) {
-          return JsonExecutorFormatterUtil.num(
-            ...(item as JsonExecutorReturnType[]),
-          );
-        } else if (typeof item === 'number' || typeof item === 'string') {
+    return JsonExecutorFormatterUtil.arr(...nodeResults).flatMap((item) => {
+      if (typeof item === 'number' || typeof item === 'string') {
         const num = Number(item);
-          return [Number.isNaN(num) ? null : num];
+        return Number.isNaN(num) ? [] : [num];
         } else {
           return [];
         }
-      })
-      .filter((item) => item !== null);
+    });
   }
 
   @define({ pattern: '::num.+', wrapper: 'simple' })

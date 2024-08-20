@@ -208,6 +208,8 @@ export class JsonExecutorNodeBuilder {
   ): JsonExecutorConstantType | null {
     if (value instanceof Error) {
       return `Error: ${value.message}`;
+    } else if (value instanceof Set) {
+      return [...value];
     } else {
       return value;
     }
