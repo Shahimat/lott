@@ -171,14 +171,16 @@ export class JsonExecutorFormatterUtil {
   @define({ pattern: '::', wrapper: 'simple' })
   public static arr(...nodeResults: JsonExecutorReturnType[]): unknown[] {
     return nodeResults.flatMap((item) => {
-        if (Array.isArray(item)) {
+      if (Array.isArray(item)) {
         return JsonExecutorFormatterUtil.arr(
           ...(item as JsonExecutorReturnType[]),
         );
-        } else {
-          return isNil(item) ? [] : [item];
-        }
-      });
+      } else if (item instanceof Set) {
+        return [...item];
+      } else {
+        return isNil(item) ? [] : [item];
+      }
+    });
   }
 
   @define({ pattern: '::num', wrapper: 'simple' })
@@ -187,9 +189,9 @@ export class JsonExecutorFormatterUtil {
       if (typeof item === 'number' || typeof item === 'string') {
         const num = Number(item);
         return Number.isNaN(num) ? [] : [num];
-        } else {
-          return [];
-        }
+      } else {
+        return [];
+      }
     });
   }
 
@@ -240,7 +242,7 @@ export class JsonExecutorFormatterUtil {
         ) {
           return acc;
         } else {
-        return { ...acc, ...curr };
+          return { ...acc, ...curr };
         }
       } else {
         return acc;
@@ -257,5 +259,10 @@ export class JsonExecutorFormatterUtil {
           ? nodeResults[0]?.toString()
           : nodeResults.toString(),
     );
+  }
+
+  @define({ pattern: '::set', wrapper: 'simple' })
+  public static set(...nodeResults: JsonExecutorReturnType[]): Set<unknown> {
+    return new Set(JsonExecutorFormatterUtil.arr(...nodeResults));
   }
 }

@@ -710,6 +710,7 @@ describe('json executor parser', () => {
         [[['text']], { test: true }],
         new Date('2024-08-20T09:05:52.061Z'),
         new Map(),
+        new Set([1, 2]),
       ]),
     ).toEqual([
       1,
@@ -719,6 +720,8 @@ describe('json executor parser', () => {
       { test: true },
       new Date('2024-08-20T09:05:52.061Z'),
       new Map(),
+      1,
+      2,
     ]);
     expect(
       await jsonExecutor.test([
@@ -769,7 +772,7 @@ describe('json executor parser', () => {
         new Set([1, 2]),
       ]),
     ).toEqual({
-        field: 'test',
+      field: 'test',
     });
     expect(await jsonExecutor.test(['::err', 1])).toEqual(new Error('1'));
     expect(await jsonExecutor.test(['::err', 1, 'text', true])).toEqual(
@@ -779,6 +782,9 @@ describe('json executor parser', () => {
       new Error('[object Object]'),
     );
     expect(await jsonExecutor.test(['::err', [[]]])).toEqual(new Error());
+    expect(
+      await jsonExecutor.test(['::set', 1, 2, 3, [[[4]]], new Set(['a', 'b'])]),
+    ).toEqual(new Set([1, 2, 3, 4, 'a', 'b']));
 
     /* === CONDITION === */
     expect(await jsonExecutor.test(['==?', true, 1, 2])).toEqual(1);

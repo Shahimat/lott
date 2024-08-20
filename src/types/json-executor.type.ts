@@ -20,7 +20,11 @@ export type JsonExecutorConstantType =
   | Record<string, unknown>
   | Array<unknown>;
 
-export type JsonExecutorReturnType = JsonExecutorConstantType | null;
+export type JsonExecutorConstantExtendedType =
+  | JsonExecutorConstantType
+  | Set<unknown>;
+
+export type JsonExecutorReturnType = JsonExecutorConstantExtendedType | null;
 export type JsonExecutorReturnWithErrorType = JsonExecutorReturnType | Error;
 
 export type JsonExecutorAbstractSyntaxTreeType =
