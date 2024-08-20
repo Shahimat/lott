@@ -24,7 +24,7 @@ export class JsonExecutorBasicOperationsUtil {
   ): void {
     const localNext = (
       nodes: JsonExecutorNode<JsonExecutorNodeVariantEnum>[],
-      lastResult: JsonExecutorConstantType | null,
+      lastResult: JsonExecutorReturnType,
     ) => {
       const [firstNode, ...splitNodes] = nodes;
       if (firstNode) {

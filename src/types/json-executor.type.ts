@@ -88,7 +88,7 @@ export type JsonExecutorNodeTreeType = {
   name?: string;
   category?: JsonExecutorOperandCategoryEnum;
   nodes?: JsonExecutorNodeTreeType[];
-  value: JsonExecutorConstantType | Error | null;
+  value: JsonExecutorConstantType | null;
   time?: string;
 };
 

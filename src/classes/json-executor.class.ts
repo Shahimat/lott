@@ -203,6 +203,16 @@ export class JsonExecutorNodeBuilder {
     }
   }
 
+  public static simplifyValue(
+    value: JsonExecutorReturnWithErrorType,
+  ): JsonExecutorConstantType | null {
+    if (value instanceof Error) {
+      return `Error: ${value.message}`;
+    } else {
+      return value;
+    }
+  }
+
   protected static buildNodes(
     input: JsonExecutorAbstractSyntaxTreeType,
     operations: Map<
@@ -859,7 +869,7 @@ export class JsonExecutorRootNode extends JsonExecutorNode<JsonExecutorNodeVaria
   ): JsonExecutorNodeTreeType {
     return {
       node: this.variant,
-      value,
+      value: JsonExecutorNodeBuilder.simplifyValue(value),
       ...(options?.timer === true ? { time: `${this.executionTime} ms` } : {}),
       ...(nodes.length !== 0
         ? {
@@ -875,14 +885,17 @@ export class JsonExecutorRootNode extends JsonExecutorNode<JsonExecutorNodeVaria
  * - CONTAINS CONSTANT AS FUNCTION
  */
 export class JsonExecutorConstantNode extends JsonExecutorNode<JsonExecutorNodeVariantEnum.constant> {
-  constructor(constant: JsonExecutorConstantType | null = null) {
+  constructor(constant: JsonExecutorReturnWithErrorType = null) {
     super(
       JsonExecutorNodeVariantEnum.constant,
       JsonExecutorFunction.build({
         category: JsonExecutorOperandCategoryEnum.unknown,
-        fn: (next) => {
-          next(Util.deepCopy(constant));
-        },
+        fn:
+          constant instanceof Error
+            ? (next) => next(constant)
+            : (next) => {
+                next(Util.deepCopy(constant));
+              },
       })!,
     );
   }
@@ -902,7 +915,7 @@ export class JsonExecutorConstantNode extends JsonExecutorNode<JsonExecutorNodeV
   ): JsonExecutorNodeTreeType {
     return {
       node: this.variant,
-      value,
+      value: JsonExecutorNodeBuilder.simplifyValue(value),
       ...(options?.timer === true ? { time: `${this.executionTime} ms` } : {}),
     };
   }
@@ -955,7 +968,7 @@ export class JsonExecutorVariableNode<
     return {
       node: this.variant,
       name: this.name,
-      value,
+      value: JsonExecutorNodeBuilder.simplifyValue(value),
       ...(options?.timer === true ? { time: `${this.executionTime} ms` } : {}),
     };
   }
@@ -1025,7 +1038,7 @@ export class JsonExecutorOperationNode<
       node: this.variant,
       category: this.operation.category,
       ...(this.operation.name ? { name: this.operation.name } : {}),
-      value,
+      value: JsonExecutorNodeBuilder.simplifyValue(value),
       ...(options?.timer === true ? { time: `${this.executionTime} ms` } : {}),
       ...(nodes.length !== 0
         ? {

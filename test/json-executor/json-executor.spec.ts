@@ -605,6 +605,24 @@ describe('json executor parser', () => {
         },
       ],
     });
+    expect(await jsonExecutor.tree(['==>', new Error('text')])).toEqual({
+      node: 'root',
+      value: 'Error: text',
+      nodes: [
+        {
+          node: 'operation',
+          category: 'exec',
+          name: '==>',
+          value: 'Error: text',
+          nodes: [
+            {
+              node: 'constant',
+              value: 'Error: text',
+            },
+          ],
+        },
+      ],
+    });
   });
 
   test('define custom functions', async () => {
