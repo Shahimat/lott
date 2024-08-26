@@ -27,6 +27,10 @@ export type JsonExecutorConstantExtendedType =
 export type JsonExecutorReturnType = JsonExecutorConstantExtendedType | null;
 export type JsonExecutorReturnWithErrorType = JsonExecutorReturnType | Error;
 
+export type JsonExecutorSyntax = Array<
+  JsonExecutorReturnWithErrorType | JsonExecutorSyntax
+>;
+
 export type JsonExecutorAbstractSyntaxTreeType =
   | {
       type: 'operand';
