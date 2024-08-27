@@ -618,17 +618,21 @@ export class JsonExecutorFunction {
         const [node, ...splitNodes] = nodes;
         if (node) {
           if (node.variant === JsonExecutorNodeVariantEnum.callback) {
-            localNext(splitNodes, acc, [
-              ...callbacks,
-              node as JsonExecutorCallbackNode,
-            ]);
+            queueMicrotask(() =>
+              localNext(splitNodes, acc, [
+                ...callbacks,
+                node as JsonExecutorCallbackNode,
+              ]),
+            );
           } else {
             node.exec(
               (result) => {
                 if (result instanceof Error) {
                   next(result);
                 } else {
-                  localNext(splitNodes, [...acc, result], callbacks);
+                  queueMicrotask(() =>
+                    localNext(splitNodes, [...acc, result], callbacks),
+                  );
                 }
               },
               commonVariables,
@@ -649,7 +653,7 @@ export class JsonExecutorFunction {
           );
         }
       };
-      localNext(nodes, [], []);
+      queueMicrotask(() => localNext(nodes, [], []));
     };
     return JsonExecutorFunction.build({
       ...input,
@@ -680,7 +684,9 @@ export class JsonExecutorFunction {
               if (result instanceof Error) {
                 next(result);
               } else {
-                localNext(splitNodes, [...values, result]);
+                queueMicrotask(() =>
+                  localNext(splitNodes, [...values, result]),
+                );
               }
             },
             commonVariables,
@@ -690,7 +696,7 @@ export class JsonExecutorFunction {
           input.fn(next, ...values);
         }
       };
-      localNext(nodes, []);
+      queueMicrotask(() => localNext(nodes, []));
     };
     return JsonExecutorFunction.build({
       ...input,
@@ -721,7 +727,9 @@ export class JsonExecutorFunction {
               if (result instanceof Error) {
                 next(result);
               } else {
-                localNext(splitNodes, [...values, result]);
+                queueMicrotask(() =>
+                  localNext(splitNodes, [...values, result]),
+                );
               }
             },
             commonVariables,
@@ -731,7 +739,7 @@ export class JsonExecutorFunction {
           next(input.fn(...values));
         }
       };
-      localNext(nodes, []);
+      queueMicrotask(() => localNext(nodes, []));
     };
     return JsonExecutorFunction.build({
       ...input,
@@ -1114,14 +1122,16 @@ export class JsonExecutorOperationNode<
           return;
         }
       }
-      this.operation.exec(
-        (result) => {
-          this.stopTimer();
-          complete(result);
-        },
-        new Map(commonVariables),
-        localVariablesCopy,
-        ...[...this.nodes.values()],
+      queueMicrotask(() =>
+        this.operation.exec(
+          (result) => {
+            this.stopTimer();
+            complete(result);
+          },
+          new Map(commonVariables),
+          localVariablesCopy,
+          ...[...this.nodes.values()],
+        ),
       );
     } catch (error) {
       this.stopTimer();
